@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}{% if ticket %}Редагування заявки{% else %}Нова заявка{% endif %}{% endblock %}
+{% block content %}
+<div class="card form-wide">
+  <h1>{% if ticket %}Редагування заявки #{{ ticket.pk }}{% else %}Нова заявка{% endif %}</h1>
+  <form method="post">{% csrf_token %}
+    {% include "_fields.html" %}
+    <p class="actions"><button class="btn">Зберегти</button>
+      <a class="btn secondary" href="{% if ticket %}{% url 'ticket_detail' ticket.pk %}{% else %}{% url 'ticket_list' %}{% endif %}">Скасувати</a></p>
+  </form>
+</div>
+{% endblock %}

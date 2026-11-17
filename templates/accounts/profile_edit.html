@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Редагування профілю{% endblock %}
+{% block content %}
+<div class="card form-wide">
+  <h1>Редагування профілю</h1>
+  <form method="post">{% csrf_token %}
+    {% include "_fields.html" %}
+    <p class="actions"><button class="btn">Зберегти</button><a class="btn secondary" href="{% url 'profile' %}">Скасувати</a></p>
+  </form>
+</div>
+{% endblock %}

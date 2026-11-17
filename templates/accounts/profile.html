@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Профіль{% endblock %}
+{% block content %}
+<div class="toolbar"><h1>Профіль</h1>
+  <div class="actions"><a class="btn" href="{% url 'profile_edit' %}">Редагувати</a>
+  <a class="btn secondary" href="{% url 'password_change' %}">Змінити пароль</a></div></div>
+<div class="card">
+  <p><b>{{ user.display_name }}</b> <span class="badge">{{ user.get_role_display }}</span></p>
+  <p class="meta">Логін: {{ user.username }}<br>Email: {{ user.email|default:"—" }}<br>Телефон: {{ user.phone|default:"—" }}<br>Зареєстровано: {{ user.date_joined|date:"d.m.Y" }}</p>
+  {% if user.bio %}<p style="white-space:pre-line">{{ user.bio }}</p>{% endif %}
+</div>
+
+{% if user.is_client %}
+  <h2>Історія моїх заявок</h2>
+  <p class="meta">Відкритих заявок (нові, в роботі, очікують відповіді): <b>{{ open_count }} / {{ open_limit }}</b></p>
+  <div class="tabs">{% for key, label, n in tabs %}<a class="{% if tab == key %}on{% endif %}" href="?tab={{ key }}">{{ label }} ({{ n }})</a>{% endfor %}</div>
+  {% if tickets %}{% include "_ticket_rows.html" with show_assignee=True %}{% else %}<div class="empty">Заявок немає.</div>{% endif %}
+
+{% elif user.is_agent %}
+  <div class="stats">
+    <div class="card"><b>{{ tickets|length }}</b>призначено мені</div>
+    <div class="card"><b>{{ active_count }}</b>в роботі</div>
+    <div class="card"><b>{{ resolved_count }}</b>вирішено</div>
+  </div>
+  <h2>Мої призначені заявки</h2>
+  {% if tickets %}{% include "_ticket_rows.html" %}{% else %}<div class="empty">Призначених заявок немає.</div>{% endif %}
+
+{% else %}
+  {% include "manage/_stats.html" %}
+{% endif %}
+{% endblock %}

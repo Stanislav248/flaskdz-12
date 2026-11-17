@@ -1,0 +1,16 @@
+<div class="stats">
+  <div class="card"><b>{{ total }}</b>усього заявок</div>
+  <div class="card"><b>{{ unassigned }}</b>відкритих без виконавця</div>
+</div>
+<div class="grid2" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+  <div><h2>За статусами</h2><div class="table-wrap"><table>
+    {% for label, n in by_status %}<tr><td>{{ label }}</td><td><b>{{ n }}</b></td></tr>{% endfor %}</table></div></div>
+  <div><h2>За пріоритетами</h2><div class="table-wrap"><table>
+    {% for label, n in by_priority %}<tr><td>{{ label }}</td><td><b>{{ n }}</b></td></tr>{% endfor %}</table></div></div>
+</div>
+<h2>Заявки на кожного агента</h2>
+<div class="table-wrap"><table>
+  <tr><th>Агент</th><th>Усього призначено</th><th>Активні</th><th>Вирішено</th></tr>
+  {% for a in agent_stats %}<tr><td>{{ a.display_name }} <span class="meta">({{ a.username }})</span></td><td>{{ a.total }}</td><td>{{ a.active }}</td><td>{{ a.resolved }}</td></tr>
+  {% empty %}<tr><td colspan="4" class="meta">Агентів немає.</td></tr>{% endfor %}
+</table></div>

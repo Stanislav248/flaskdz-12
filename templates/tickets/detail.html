@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Заявка #{{ ticket.pk }}{% endblock %}
+{% block content %}
+<div class="toolbar"><div><a class="crumb" href="{% url 'ticket_list' %}">Заявки</a><h1>{{ ticket.title }} <span class="meta">№{{ ticket.pk }}</span></h1></div>
+  <div class="actions">{% if can_edit %}<a class="btn secondary" href="{% url 'ticket_edit' ticket.pk %}">Редагувати</a>{% endif %}
+</div></div>
+
+<div class="grid2">
+<div>
+  <div class="card">
+    <div class="ticket-head"><span class="badge {{ ticket.status }}">{{ ticket.get_status_display }}</span>
+       <span class="badge p{{ ticket.priority }}">{{ ticket.get_priority_display }}</span>
+       {% if ticket.category %}<span class="badge">{{ ticket.category }}</span>{% endif %}</div>
+    <div class="ticket-body">{{ ticket.description }}</div>
+  </div>
+
+  <h2>Коментарі</h2>
+  <div class="thread">
+  {% for c in comments %}
+    <div class="comment {% if c.is_internal %}internal{% endif %}">
+      <div class="head"><b>{{ c.author.display_name }}</b> ({{ c.author.get_role_display }}) · {{ c.created_at|date:"d.m.Y H:i" }}
+        {% if c.is_internal %}<span class="badge">Внутрішній</span>{% endif %}</div>
+      <div style="white-space:pre-line">{{ c.body }}</div>
+    </div>
+  {% empty %}<p class="meta">Коментарів ще немає.</p>{% endfor %}
+  </div>
+
+  {% if ticket.is_final %}
+    <div class="flash info">Заявку {{ ticket.get_status_display|lower }} - коментувати та редагувати її вже не можна.</div>
+  {% elif can_comment %}
+    <form class="card" method="post" action="{% url 'ticket_comment' ticket.pk %}">{% csrf_token %}
+      <label for="comment-body">Новий коментар</label><textarea id="comment-body" name="body" required></textarea>
+      {% if can_internal %}<label class="checkbox"><input type="checkbox" name="internal"> Внутрішній коментар (клієнт не бачить)</label>{% endif %}
+      <p><button class="btn">Додати коментар</button></p>
+    </form>
+  {% else %}
+    <p class="meta">Коментувати можуть лише учасники заявки{% if can_take %} - візьміть заявку в роботу{% endif %}.</p>
+  {% endif %}
+</div>
+
+<div>
+  <div class="card">
+    <dl class="facts">
+      <dt>Автор</dt><dd>{{ ticket.author.display_name }}</dd>
+      <dt>Виконавець</dt><dd>{{ ticket.assignee.display_name|default:"не призначено" }}</dd>
+      <dt>Створено</dt><dd>{{ ticket.created_at|date:"d.m.Y H:i" }}</dd>
+      <dt>Оновлено</dt><dd>{{ ticket.updated_at|date:"d.m.Y H:i" }}</dd>
+      {% if ticket.resolved_at %}<dt>Вирішено</dt><dd>{{ ticket.resolved_at|date:"d.m.Y H:i" }}</dd>{% endif %}
+    </dl>
+  </div>
+
+  {% if can_take or transitions %}
+  <div class="card side-card"><h3>Дії</h3><div class="actions">
+    {% if can_take %}
+      <form class="inline" method="post" action="{% url 'ticket_take' ticket.pk %}">{% csrf_token %}<button class="btn">Взяти в роботу</button></form>
+    {% endif %}
+    {% for t in transitions %}
+      <form class="inline" method="post" action="{% url 'ticket_status' ticket.pk %}">{% csrf_token %}
+        <input type="hidden" name="status" value="{{ t.status }}"><button class="btn {% if t.danger %}danger{% else %}secondary{% endif %}">{{ t.label }}</button></form>
+    {% endfor %}
+  </div></div>
+  {% endif %}
+
+  {% if user.is_manager and not ticket.is_final %}
+  <div class="card side-card"><h3>Керування</h3>
+    <form method="post" action="{% url 'ticket_assign' ticket.pk %}">{% csrf_token %}
+      <label>Виконавець</label>
+      <select name="assignee">{% for a in agents %}<option value="{{ a.pk }}" {% if ticket.assignee_id == a.pk %}selected{% endif %}>{{ a.display_name }}</option>{% endfor %}</select>
+      <p><button class="btn sm">Призначити</button></p></form>
+    <form method="post" action="{% url 'ticket_priority' ticket.pk %}">{% csrf_token %}
+      <label>Пріоритет</label>
+      <select name="priority">{% for v, l in priorities %}<option value="{{ v }}" {% if ticket.priority == v %}selected{% endif %}>{{ l }}</option>{% endfor %}</select>
+      <p><button class="btn sm secondary">Змінити пріоритет</button></p></form>
+  </div>
+  {% endif %}
+</div>
+</div>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Заявки{% endblock %}
+{% block content %}
+<div class="toolbar"><h1>{% if user.is_client %}Мої заявки{% elif user.is_agent %}Нові та призначені мені{% else %}Усі заявки{% endif %}</h1>
+  <a class="btn" href="{% url 'ticket_create' %}">Нова заявка</a></div>
+
+<form class="card filters" method="get">
+  <div><label>Пошук за заголовком</label><input name="q" value="{{ f.q }}"></div>
+  <div><label>Статус</label><select name="status"><option value="">Усі</option>
+    {% for v, l in statuses %}<option value="{{ v }}" {% if f.status == v %}selected{% endif %}>{{ l }}</option>{% endfor %}</select></div>
+  <div><label>Пріоритет</label><select name="priority"><option value="">Усі</option>
+    {% for v, l in priorities %}<option value="{{ v }}" {% if f.priority == v|stringformat:"s" %}selected{% endif %}>{{ l }}</option>{% endfor %}</select></div>
+  <div><label>Категорія</label><select name="category"><option value="">Усі</option>
+    {% for c in categories %}<option value="{{ c.pk }}" {% if f.category == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>{% endfor %}</select></div>
+  {% if not user.is_client %}
+  <div><label>Виконавець</label><select name="assignee"><option value="">Усі</option>
+    <option value="none" {% if f.assignee == "none" %}selected{% endif %}>Не призначено</option>
+    {% for a in agents %}<option value="{{ a.pk }}" {% if f.assignee == a.pk|stringformat:"s" %}selected{% endif %}>{{ a.display_name }}</option>{% endfor %}</select></div>
+  {% endif %}
+  <div><label>Створено від</label><input type="date" name="date_from" value="{{ f.date_from }}"></div>
+  <div><label>Створено до</label><input type="date" name="date_to" value="{{ f.date_to }}"></div>
+  <div><label>Сортування</label><select name="sort">
+    {% for k, v in sorts.items %}<option value="{{ k }}" {% if sort == k %}selected{% endif %}>{{ v.1 }}</option>{% endfor %}</select></div>
+  <div class="actions"><button class="btn">Застосувати</button><a class="btn secondary" href="{% url 'ticket_list' %}">Скинути</a></div>
+</form>
+
+{% if page.object_list %}
+  {% include "_ticket_rows.html" with tickets=page.object_list show_assignee=True %}
+  {% if page.paginator.num_pages > 1 %}
+  <div class="pager">
+    {% for p in page.paginator.page_range %}
+      {% if p == page.number %}<span class="on">{{ p }}</span>
+      {% else %}<a href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ p }}">{{ p }}</a>{% endif %}
+    {% endfor %}
+  </div>
+  {% endif %}
+{% else %}<div class="empty">Заявок не знайдено.</div>{% endif %}
+{% endblock %}

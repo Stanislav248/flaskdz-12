@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Користувачі{% endblock %}
+{% block content %}
+<h1>Користувачі та ролі</h1>
+<div class="table-wrap"><table>
+  <tr><th>Логін</th><th>Ім'я</th><th>Email</th><th>Роль</th><th>Створено / веде заявок</th><th>Акаунт</th><th></th></tr>
+  {% for u in users %}
+  <tr>
+    <td>{{ u.username }}</td><td>{{ u.display_name }}</td><td>{{ u.email }}</td>
+    <td>{% if u.pk == user.pk %}<span class="badge">{{ u.get_role_display }}</span>
+      {% else %}<form class="inline" method="post" action="{% url 'manage_user_role' u.pk %}">{% csrf_token %}
+        <select name="role" style="width:auto" onchange="this.form.submit()">
+          {% for v, l in roles %}<option value="{{ v }}" {% if u.role == v %}selected{% endif %}>{{ l }}</option>{% endfor %}</select></form>{% endif %}</td>
+    <td>{{ u.n_created }} / {{ u.n_assigned }}</td>
+    <td><span class="badge {% if u.is_active %}resolved{% else %}rejected{% endif %}">{% if u.is_active %}Активний{% else %}Заблокований{% endif %}</span></td>
+    <td>{% if u.pk != user.pk %}<form class="inline" method="post" action="{% url 'manage_user_toggle' u.pk %}">{% csrf_token %}
+      <button class="btn secondary sm">{% if u.is_active %}Заблокувати{% else %}Розблокувати{% endif %}</button></form>{% endif %}</td>
+  </tr>
+  {% endfor %}
+</table></div>
+<p class="meta">Якщо агента переводять на іншу роль, його відкриті заявки повертаються в чергу зі статусом «Нова».</p>
+{% endblock %}

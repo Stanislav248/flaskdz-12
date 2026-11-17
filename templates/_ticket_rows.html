@@ -1,0 +1,14 @@
+<div class="table-wrap"><table>
+  <tr><th>№</th><th>Заголовок</th><th>Категорія</th><th>Пріоритет</th><th>Статус</th>{% if not user.is_client or show_assignee %}<th>Виконавець</th>{% endif %}<th>Створено</th></tr>
+  {% for t in tickets %}
+  <tr class="st-{{ t.status }}">
+    <td class="num">{{ t.pk }}</td>
+    <td><a class="t-title" href="{% url 'ticket_detail' t.pk %}">{{ t.title }}</a></td>
+    <td>{{ t.category|default:"—" }}</td>
+    <td><span class="badge p{{ t.priority }}">{{ t.get_priority_display }}</span></td>
+    <td><span class="badge {{ t.status }}">{{ t.get_status_display }}</span></td>
+    {% if not user.is_client or show_assignee %}<td>{{ t.assignee|default:"—" }}</td>{% endif %}
+    <td class="when">{{ t.created_at|date:"d.m.Y H:i" }}</td>
+  </tr>
+  {% endfor %}
+</table></div>
